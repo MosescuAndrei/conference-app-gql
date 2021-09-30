@@ -2,9 +2,10 @@ const { SQLDataSource } = require('../../utils/sqlDataSource')
 
 class ConferenceDb extends SQLDataSource {
   generateWhereClause(queryBuilder, filters = {}) {
-    const { startDate, endDate } = filters
+    const { startDate, endDate, organizerEmail } = filters
     if (startDate) queryBuilder.andWhere('StartDate', '>=', startDate)
-    if (endDate) queryBuilder.andWhere('EndDate', '>=', endDate)
+    if (endDate) queryBuilder.andWhere('EndDate', '<=', endDate)
+    if (organizerEmail) queryBuilder.andWhere('OrganizerEmail','=',organizerEmail)
   }
 
   async getConferenceList(pager, filters) {
@@ -25,6 +26,15 @@ class ConferenceDb extends SQLDataSource {
     .count('Id', { as: 'TotalCount' })
     .modify(this.generateWhereClause, filters)
     .first()
+  }
+
+  async getConferenceById(id){
+    const result = await this.knex
+    .select('Id', 'Name', 'ConferenceTypeId', 'LocationId', 'StartDate', 'EndDate', 'CategoryId')
+    .from('Conference')
+    .where('Id', id)
+    .first()
+    return result
   }
 }
 

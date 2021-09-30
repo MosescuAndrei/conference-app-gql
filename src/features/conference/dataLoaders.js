@@ -16,7 +16,7 @@ const getConferencesLoaders = dbInstance => {
         .from('ConferenceXSpeaker AS c')
         .innerJoin('Speaker AS s', 'c.SpeakerId', '=', 's.Id')
         .whereIn('c.ConferenceId', ids)
-        .then(rows => ids.map(id => rows.filter(row => row.id === id)))
+        .then(rows => ids.map(id => rows.filter(row => row.conferenceId === id)))
     ),
     statusByConferenceId: new DataLoader(ids =>
       dbInstance
@@ -32,7 +32,22 @@ const getConferencesLoaders = dbInstance => {
           ids.map(x => x.userEmail)
         )
         .then(rows => ids.map(i => rows.find(x => x.conferenceId === i.id && x.attendeeEmail === i.userEmail)))
-    )
+    ),
+    conferenceById: new DataLoader(ids =>
+      dbInstance
+          .select(
+              "Id",
+              "ConferenceTypeId",
+              "LocationId",
+              "CategoryId",
+              "StartDate",
+              "EndDate",
+              "Name"
+          )
+          .from("Conference")
+          .whereIn("Id", ids)
+          .then(rows => ids.map(id => rows.find(x => x.id === parseInt(id))))
+  )
     
   }
 }
